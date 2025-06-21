@@ -1,45 +1,26 @@
 import cv2
 import numpy as np
-from matplotlib import pyplot as plt
+import matplotlib.pyplot as plt
 
-my_img = cv2.imread('testing.jpg', 0)
+def block_average(my_img, block_size):
+    height, width = my_img.shape
+    h_trim, w_trim = height - height % block_size, width - width % block_size
+    img_cropped = my_img[:h_trim, :w_trim]
+    reshaped = img_cropped.reshape(h_trim // block_size, block_size,
+                                   w_trim // block_size, block_size)
+    block_avg = reshaped.mean(axis=(1, 3)).astype(np.uint8)
+    return np.kron(block_avg, np.ones((block_size, block_size), dtype=np.uint8))
 
-def block_average(img, block_size):
-    height, width = img.shape
-    output = img.copy()
-    
-    for i in range(0, height - block_size + 1, block_size):
-        for j in range(0, width - block_size + 1, block_size):
-            block = img[i:i+block_size, j:j+block_size]
-            avg_value = np.mean(block, dtype=np.uint8)
-            output[i:i+block_size, j:j+block_size] = avg_value
-    return output
+img = cv2.imread('testing.jpg', cv2.IMREAD_GRAYSCALE)
 
-avg_3 = block_average(my_img, 3)
-avg_5 = block_average(my_img, 5)
-avg_7 = block_average(my_img, 7)
+result_3 = block_average(img, 3)
+result_5 = block_average(img, 5)
+result_7 = block_average(img, 7)
 
 plt.figure(figsize=(12, 8))
-
-plt.subplot(2, 2, 1)
-plt.title("Original")
-plt.imshow(my_img, cmap='gray')
-plt.axis('off')
-
-plt.subplot(2, 2, 2)
-plt.title("3x3 Block Avg")
-plt.imshow(avg_3, cmap='gray')
-plt.axis('off')
-
-plt.subplot(2, 2, 3)
-plt.title("5x5 Block Avg")
-plt.imshow(avg_5, cmap='gray')
-plt.axis('off')
-
-plt.subplot(2, 2, 4)
-plt.title("7x7 Block Avg")
-plt.imshow(avg_7, cmap='gray')
-plt.axis('off')
-
+plt.subplot(2, 2, 1), plt.imshow(img, cmap='gray'), plt.title("Original"), plt.axis('off')
+plt.subplot(2, 2, 2), plt.imshow(result_3, cmap='gray'), plt.title("3×3 Block Averaging"), plt.axis('off')
+plt.subplot(2, 2, 3), plt.imshow(result_5, cmap='gray'), plt.title("5×5 Block Averaging"), plt.axis('off')
+plt.subplot(2, 2, 4), plt.imshow(result_7, cmap='gray'), plt.title("7×7 Block Averaging"), plt.axis('off')
 plt.tight_layout()
 plt.show()
